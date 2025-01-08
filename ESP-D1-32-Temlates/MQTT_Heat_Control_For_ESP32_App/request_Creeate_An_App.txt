@@ -1,0 +1,18 @@
+Can you create an expo,React Native,javaScript 
+(not javatypeScript) App, that has a MqttService.js component.
+this component should connect to the HiveMQ broker cluster,with
+a userName and Password of:
+userName: "Tortoise"
+Password: "Hea1951Ter"
+url:"c846e85af71b4f65864f7124799cd3bb.s1.eu.hivemq.cloud".
+I want the App.js component to create a line chart with three
+lines that should be colour coded, one for outside temperature 
+one for coolside temperature and one for heater.
+the "Y" axis will be for the temperature in 1˚ increments,
+the "X" axis will be for the time.
+I want to be able to scroll the line, the line should be able to
+scroll independant to the boddy  
+the App.component should be able to store the data and retreive
+the data when the user scrolls the line
+the App.js should supscribe to 4 topics "outSide", "coolSide",
+"heater", and time.

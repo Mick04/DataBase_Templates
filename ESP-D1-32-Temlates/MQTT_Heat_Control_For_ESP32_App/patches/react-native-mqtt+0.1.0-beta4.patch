@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-mqtt/.DS_Store b/node_modules/react-native-mqtt/.DS_Store
+new file mode 100644
+index 0000000..3befb99
+Binary files /dev/null and b/node_modules/react-native-mqtt/.DS_Store differ
+diff --git a/node_modules/react-native-mqtt/android/.DS_Store b/node_modules/react-native-mqtt/android/.DS_Store
+new file mode 100644
+index 0000000..5b1cb6b
+Binary files /dev/null and b/node_modules/react-native-mqtt/android/.DS_Store differ
+diff --git a/node_modules/react-native-mqtt/android/build.gradle b/node_modules/react-native-mqtt/android/build.gradle
+index 7673991..da0500c 100644
+--- a/node_modules/react-native-mqtt/android/build.gradle
++++ b/node_modules/react-native-mqtt/android/build.gradle
+@@ -33,11 +33,11 @@ repositories {
+ }
+ 
+ dependencies {
+-  compile 'com.facebook.react:react-native:0.19.+'
+-  compile('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2') {
++  implementation 'com.facebook.react:react-native:0.19.+'
++  implementation('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2') {
+       exclude module: 'support-v4'
+   }
+-  compile 'org.bouncycastle:bcprov-jdk15on:1.54'
++  implementation 'org.bouncycastle:bcprov-jdk15on:1.54'
+ 
+ }
+ 
+diff --git a/node_modules/react-native-mqtt/ios/.DS_Store b/node_modules/react-native-mqtt/ios/.DS_Store
+new file mode 100644
+index 0000000..a06482c
+Binary files /dev/null and b/node_modules/react-native-mqtt/ios/.DS_Store differ
+diff --git a/node_modules/react-native-mqtt/ios/RCTMqtt/.DS_Store b/node_modules/react-native-mqtt/ios/RCTMqtt/.DS_Store
+new file mode 100644
+index 0000000..d75091a
+Binary files /dev/null and b/node_modules/react-native-mqtt/ios/RCTMqtt/.DS_Store differ
