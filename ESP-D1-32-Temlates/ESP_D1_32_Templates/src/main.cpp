@@ -28,8 +28,8 @@ DeviceAddress redSensor, greenSensor, blueSensor;
 float celsius, BlueSensor, GreenSensor, RedSensor, stores1, stores2, stores3, prevS1, prevS2, prevS3;
 
 int adr;
-uint_fast8_t amTemperature, pmTemperature, amTemp, pmTemp; // is set by the sliders
-uint_fast8_t AMtime, PMtime, Day, Hours, Minutes, seconds, amHours, amMinutes, pmHours, pmMinutes, prevHours = -true, prevMinutes = -1;
+uint_fast8_t ESP32amTemperature, ESP32pmTemperature, amTemp, pmTemp; // is set by the sliders
+uint_fast8_t ESP32AMtime, ESP32PMtime, Day, Hours, Minutes, seconds, amHours, amMinutes, pmHours, pmMinutes, prevHours = -true, prevMinutes = -1;
 bool Am, AmFlag, heaterStatus = false, StartUp = true, sensorReadStartUp = true, heaterOn = false, prevHeaterStatus = false;
 
 char prevTargetTemperature[23], ESP32targetTemperature[23];
@@ -68,6 +68,22 @@ int reconnect(int index);
 void publishTempToMQTT();
 // void relay_Control();
 void sendSensor();
+
+/********************************************
+  Static IP address and wifi conection Start
+********************************************/
+
+// Set your Static IP address
+IPAddress local_IP(192, 168, 1, 184);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 1, 1);
+
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);   // optional
+IPAddress secondaryDNS(8, 8, 4, 4); // optional
+/********************************************
+     Static IP address and wifi conection end
+ ********************************************/
 
 bool isConnected = false; // flag to check if the device is connected to the wifi
 
@@ -118,7 +134,6 @@ void setup()
 
 void loop()
 {
-  Serial.println("@@@@@@@@@@ redSensor:@@@@@ " + String(RedSensor));
   /***********************
    *   WIFI Conection     *
    *       Start          *
@@ -162,13 +177,40 @@ void loop()
   publishTempToMQTT();
 }
 
+void handleWiFiConnection(const char* ssid, const char* password, bool &isConnected) {
+  static bool isStaticIPConfigured = false;
+
+  // Configure static IP once
+  if (!isStaticIPConfigured) {
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+      Serial.println("Failed to configure Static IP");
+    } else {
+      Serial.println("Static IP configured");
+    }
+    isStaticIPConfigured = true; // Avoid reconfiguring every call
+  }
+
+  // Handle WiFi connection
+  if (WiFi.status() == WL_CONNECTED && !isConnected) {
+    Serial.println("Connecting to WiFi");
+    digitalWrite(LED_BUILTIN, HIGH); // Turn LED on
+    isConnected = true;             // Update connection status
+  } else if (WiFi.status() != WL_CONNECTED) {
+    Serial.print("Connecting"); // Debug message
+    WiFi.begin(ssid, password); // Attempt connection
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // Toggle LED state
+    delay(1000); // Wait before retrying
+    isConnected = false; // Update connection status
+  }
+}
+
 void sendSensor()
 {
   /**************************
        DS18B20 Sensor
          Starts Here
   **************************/
-  Serial.println("line 169");
+  // Serial.println("line 169");
   char sensVal[50]; // Declare sensVal here
                     // Request temperatures from all sensors
   sensors.requestTemperatures();
@@ -185,35 +227,35 @@ void sendSensor()
     prevS3 = BlueSensor - 2;
     sensorReadStartUp = false;
   }
-  Serial.println("line 182 sensorReadStartUp " + String(sensorReadStartUp));
-  Serial.print("line 183  prevS1: ");
-  Serial.println(prevS1);
-  Serial.print("line 183  RedSensor: ");
-  Serial.println(RedSensor);
-  Serial.print("line 185  prevS2: ");
-  Serial.println(prevS2);
-  Serial.print("line 185  GreenSensor: ");
-  Serial.println(GreenSensor);
-  Serial.print("line 187  prevS3: ");
-  Serial.println(prevS3);
-  Serial.print("line 187  BlueSensor: ");
-  Serial.println(BlueSensor);
-  Serial.println("Delaying for 9 seconds");
-  Serial.println("After delay");
-  // Print temperatures to the serial monitor
-  Serial.print("line 189 red: ");
-  Serial.print(RedSensor);
-  Serial.println(" °C");
+  // Serial.println("line 182 sensorReadStartUp " + String(sensorReadStartUp));
+  // Serial.print("line 183  prevS1: ");
+  // Serial.println(prevS1);
+  // Serial.print("line 183  RedSensor: ");
+  // Serial.println(RedSensor);
+  // Serial.print("line 185  prevS2: ");
+  // Serial.println(prevS2);
+  // Serial.print("line 185  GreenSensor: ");
+  // Serial.println(GreenSensor);
+  // Serial.print("line 187  prevS3: ");
+  // Serial.println(prevS3);
+  // Serial.print("line 187  BlueSensor: ");
+  // Serial.println(BlueSensor);
+  // Serial.println("Delaying for 9 seconds");
+  // Serial.println("After delay");
+  // // Print temperatures to the serial monitor
+  // Serial.print("line 189 red: ");
+  // Serial.print(RedSensor);
+  // Serial.println(" °C");
 
-  Serial.print("Green: ");
-  Serial.print(GreenSensor);
-  Serial.println(" °C");
+  // Serial.print("Green: ");
+  // Serial.print(GreenSensor);
+  // Serial.println(" °C");
 
-  Serial.print("blue: ");
-  Serial.print(BlueSensor);
-  Serial.println(" °C");
+  // Serial.print("blue: ");
+  // Serial.print(BlueSensor);
+  // Serial.println(" °C");
 
-  Serial.println("-----------------------");
+  // Serial.println("-----------------------");
 
 
 
@@ -227,28 +269,28 @@ void sendSensor()
                                    start
   ************************************************************/
 
-  // if (Am)
-  // {
-  //   if (amHours == Hours && amMinutes == Minutes)
-  //   { // set amTemp for the Night time setting
-  //     Serial.println("line 591 Am == true");
-  //     AmFlag = true;
-  //     amTemp = amTemperature;
-  //     // int myTemp = amTemp;
-  //     snprintf(ESP32targetTemperature, sizeof(ESP32targetTemperature), "%d", amTemp);
-  //   }
-  // }
-  // else
-  // {
-  //   if (pmHours == Hours && pmMinutes == Minutes)
-  //   { // set pmTemp for the Night time setting
-  //     Serial.println("line 602 Am == false");
-  //     AmFlag = false;
-  //     pmTemp = pmTemperature;
-  //     int myTemp = pmTemp;
-  //     snprintf(ESP32targetTemperature, sizeof(ESP32targetTemperature), "%d", pmTemp);
-  //   }
-  // }
+  if (Am)
+  {
+    if (amHours == Hours && amMinutes == Minutes)
+    { // set amTemp for the Night time setting
+      Serial.println("line 591 Am == true");
+      AmFlag = true;
+      amTemp = ESP32amTemperature;
+      // int myTemp = amTemp;
+      snprintf(ESP32targetTemperature, sizeof(ESP32targetTemperature), "%d", amTemp);
+    }
+  }
+  else
+  {
+    if (pmHours == Hours && pmMinutes == Minutes)
+    { // set pmTemp for the Night time setting
+      Serial.println("line 602 Am == false");
+      AmFlag = false;
+      pmTemp = ESP32pmTemperature;
+      int myTemp = pmTemp;
+      snprintf(ESP32targetTemperature, sizeof(ESP32targetTemperature), "%d", pmTemp);
+    }
+  }
 }
 /*************************************************************
                              Heater Control
@@ -257,8 +299,7 @@ void sendSensor()
 
 /*************************************************************
  *                     call back Start                       *
- ************************************************************/
-
+ *************************************************************/
 void callback(char *topic, uint8_t *payload, unsigned int length)
 {
   if (topic == nullptr || payload == nullptr)
@@ -269,31 +310,35 @@ void callback(char *topic, uint8_t *payload, unsigned int length)
   // Null-terminate the payload to treat it as a string
   payload[length] = '\0';
 
-  if (strstr(topic, "amTemperature"))
+  if (strstr(topic, "ESP32amTemperature"))
   {
-    sscanf((char *)payload, "%d", &amTemperature);
+    sscanf((char *)payload, "%d", &ESP32amTemperature);
+    Serial.println("line 391 ******** ESP32amTemperature:****** " + String(ESP32amTemperature));
     if (StartUp == true)
     {
-      amTemp = amTemperature;
-      Serial.println("line 392 amTemp: " + String(amTemp));
+      amTemp = ESP32amTemperature;
+      Serial.println("line 392 ******** ESP32amTemp:********** " + String(amTemp));
     }
   }
-  if (strstr(topic, "pmTemperature"))
+  if (strstr(topic, "ESP32pmTemperature"))
   {
-    sscanf((char *)payload, "%d", &pmTemperature);
+    sscanf((char *)payload, "%d", &ESP32pmTemperature);
+    Serial.println("line 398 *********ESP32pmTemperature:********* " + String(ESP32pmTemperature));
     if (StartUp == true)
     {
-      pmTemp = pmTemperature;
+      pmTemp = ESP32pmTemperature;
       StartUp = false;
     }
   }
-  if (strstr(topic, "AMtime"))
+  if (strstr(topic, "ESP32AMtime"))
   {
     sscanf((char *)payload, "%d:%d", &amHours, &amMinutes);
+    Serial.println("line 405 ********* ESP32AMtime *********"+String((char *)payload));
   }
-  if (strstr(topic, "PMtime"))
+  if (strstr(topic, "ESP32PMtime"))
   {
     sscanf((char *)payload, "%d:%d", &pmHours, &pmMinutes);
+    Serial.println("line 410 ********** ESP32PMtime b******** "+String((char *)payload));
   }
   if (amTemp != 0 && pmTemp != 0)
   {
@@ -321,10 +366,10 @@ int reconnect(int index)
       Serial.println("Successfully connected to MQTT server");
       client.subscribe("Temp_Control/sub");
       client.subscribe("control");
-      client.subscribe("amTemperature");
-      client.subscribe("pmTemperature");
-      client.subscribe("AMtime");
-      client.subscribe("PMtime");
+      client.subscribe("ESP32amTemperature");
+      client.subscribe("ESP32pmTemperature");
+      client.subscribe("ESP32AMtime");
+      client.subscribe("ESP32PMtime");
       client.subscribe("ESP32HeaterStatus");
       client.subscribe("ESP32ESP32outSide");
       client.subscribe("ESP32coolSide");
@@ -354,7 +399,7 @@ int reconnect(int index)
 * ******************************************/
 void publishTempToMQTT(void)
 {
-  Serial.println("line 331 publishTempToMQTT");
+  // Serial.println("line 331 publishTempToMQTT");
   if (!client.connected())
   {
 
@@ -368,10 +413,10 @@ void publishTempToMQTT(void)
       Serial.println("Failed to connect and subscribe in setup");
     }
   }
-  Serial.println("line 373 ...... RedSensor .... " + String(RedSensor));
-  Serial.println("line 374 ...... prevS1 .... " + String(prevS1));
-  Serial.println("line 375 ...... GreenSensor .... " + String(GreenSensor) + " " + String(prevS2));
-  Serial.println("line 376 ...... BlueSensor .... " + String(BlueSensor) + " " + String(prevS3));
+  // Serial.println("line 373 ...... RedSensor .... " + String(RedSensor));
+  // Serial.println("line 374 ...... prevS1 .... " + String(prevS1));
+  // Serial.println("line 375 ...... GreenSensor .... " + String(GreenSensor) + " " + String(prevS2));
+  // Serial.println("line 376 ...... BlueSensor .... " + String(BlueSensor) + " " + String(prevS3));
   char sensVal[50];
   const float threshold = 0.2; // Define a threshold for significant change
   // Publish redSensor
@@ -436,7 +481,7 @@ void publishTempToMQTT(void)
   {
     Serial.println("line 464 Publishing target temperature");
     snprintf(targetTemperatureStr, sizeof(targetTemperatureStr), "%s", ESP32targetTemperature);
-    client.publish("TargetTemperature", targetTemperatureStr, true);
+    client.publish("ESP32TargetTemperature", targetTemperatureStr, true);
     strcpy(prevTargetTemperature, ESP32targetTemperature); // Copy the new value to prevTargetTemperature
   }
 }
