@@ -7,7 +7,7 @@ class MqttService {
     // console.log("MqttService constructor");
     // Initialize the client and pass in the callback for when a message is received
     this.client = new Paho.Client(
-      "c846e85af71b4f65864f7124799cd3bb.s1.eu.hivemq.cloud", // Replace with your actual HiveMQ cluster URL
+      "ea53fbd1c1a54682b81526905851077b.s1.eu.hivemq.cloud", // Replace with your actual HiveMQ cluster URL
       Number(8884), // Secure WebSocket port (wss) for HiveMQ Cloud
       "react_native_mqtt"
     );

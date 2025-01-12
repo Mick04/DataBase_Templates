@@ -13,12 +13,11 @@ import MqttService from "./MqttService";
 import CustomLineChart from "./CustomLineChart"; // Import the reusable component
 import { styles } from "../Styles/styles";
 
-const HeatGraph = () => {
+const CoolSideGraph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [heater, setHeaterTemp] = useState("");
-  const [gaugeHours, setGaugeHours] = useState(0);
-  const [gaugeMinutes, setGaugeMinutes] = useState(0);
-  const [inputValue, setInputValue] = useState("");
+  const [ESP32coolSide, setCoolSideTemp] = useState("");
+  const [ESP32gaugeHours, setGaugeHours] = useState(0);
+  const [ESP32gaugeMinutes, setGaugeMinutes] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [data, setData] = useState([
     { value: -10, label: "10:00", dataPointText: "-10 c˚" },
@@ -27,13 +26,13 @@ const HeatGraph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "heater") {
+      if (message.destinationName === "ESP32coolSide") {
         const newTemp = parseFloat(message.payloadString).toFixed(1);
         const lastTemp = data.length > 0 ? data[data.length - 1].value : null;
 
         if (lastTemp === null || Math.abs(newTemp - lastTemp) >= 0.01) {
           const formattedTemp = parseFloat(newTemp); // Convert back to number
-          setHeaterTemp(formattedTemp);
+          setCoolSideTemp(formattedTemp);
           setData((prevData) => [
             ...prevData,
             {
@@ -47,30 +46,31 @@ const HeatGraph = () => {
           ]);
         }
       }
-      if (message.destinationName === "gaugeHours") {
+      if (message.destinationName === "ESP32gaugeHours") {
         setGaugeHours(parseInt(message.payloadString));
       }
-      if (message.destinationName === "gaugeMinutes") {
+      if (message.destinationName === "ESP32gaugeMinutes") {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, heater]
+    [data, ESP32coolSide]
   );
 
   useFocusEffect(
     useCallback(() => {
+      console.log("CoolSideScreen is focused");
 
       // Initialize the MQTT service
       const mqtt = new MqttService(onMessageArrived, setIsConnected);
-      mqtt.connect("Tortoise", "Hea1951Ter", {
+      mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
           setIsConnected(true);
-          mqtt.client.subscribe("heater");
-          mqtt.client.subscribe("gaugeHours");
-          mqtt.client.subscribe("gaugeMinutes");
+          mqtt.client.subscribe("ESP32coolSide");
+          mqtt.client.subscribe("ESP32gaugeHours");
+          mqtt.client.subscribe("ESP32gaugeMinutes");
         },
         onFailure: (error) => {
-          console.error("Failed to connect to MQTT broker", error);
+          // console.error("Failed to connect to MQTT broker", error);
           setIsConnected(false);
         },
       });
@@ -78,6 +78,7 @@ const HeatGraph = () => {
       setMqttService(mqtt);
 
       return () => {
+        console.log("CoolSideScreen is unfocused");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           mqtt.disconnect();
@@ -88,12 +89,11 @@ const HeatGraph = () => {
   );
 
   function handleReconnect() {
-    console.log("Gauges line 104 Reconnecting...");
     if (mqttService) {
       mqttService.reconnect();
       mqttService.reconnectAttempts = 0;
     } else {
-      console.log("Gauges line 110 MQTT Service is not initialized");
+      // console.error("MQTT service is not initialized");
     }
   }
 
@@ -105,7 +105,7 @@ const HeatGraph = () => {
           setData(JSON.parse(savedData));
         }
       } catch (error) {
-        console.error("Failed to load data", error);
+        // console.error("Failed to load data", error);
       }
     };
 
@@ -117,56 +117,34 @@ const HeatGraph = () => {
       try {
         await AsyncStorage.setItem("chartData", JSON.stringify(data));
       } catch (error) {
-        console.error("Failed to save data", error);
+        // console.error("Failed to save data", error);
       }
     };
 
     saveData();
   }, [data]);
 
-  const addDataPoint = () => {
-    const newValue = parseFloat(inputValue);
-    if (isNaN(newValue)) {
-      Alert.alert("Invalid input", "Please enter a valid number", [
-        { text: "OK" },
-      ]);
-      return;
-    }
-    const newLabel = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const newDataPoint = {
-      value: newValue,
-      label: newLabel,
-      dataPointText: `${newValue} c˚`,
-    };
-    setData([...data, newDataPoint]);
-    setInputValue("");
-  };
   return (
     <SafeAreaView style={styles.graphContainer}>
       <View>
-        <Text style={styles.header}> Heater Temperature</Text>
-
+      <Text style={styles.ESPHeader}>MQTT_Heat_Control ESP32</Text>
+        <Text style={styles.header}>CoolSide Temperature</Text>
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>
-          {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
+          {ESP32gaugeHours}:{ESP32gaugeMinutes.toString().padStart(2, "0")}
         </Text>
       </View>
-      <View style={styles.connectionStatus}>
-        <Text
-          style={[
-            styles.connectionStatus,
-            { color: isConnected ? "green" : "red" },
-          ]}
-        >
-          {isConnected
-            ? "Connected to MQTT Broker"
-            : "Disconnected from MQTT Broker"}
-        </Text>
-      </View>
-      <CustomLineChart data={data} GraphTextcolor={"red"} curved={true} />
+      <Text
+        style={[
+          styles.connectionStatus,
+          { color: isConnected ? "green" : "red" },
+        ]}
+      >
+        {isConnected
+          ? "Connected to MQTT Broker"
+          : "Disconnected from MQTT Broker"}
+      </Text>
+      <CustomLineChart data={data} GraphTextcolor={'green'} curved={true} />
       <TouchableOpacity
         style={styles.reconnectButton}
         onPress={handleReconnect}
@@ -177,4 +155,4 @@ const HeatGraph = () => {
     </SafeAreaView>
   );
 };
-export default HeatGraph;
+export default CoolSideGraph;

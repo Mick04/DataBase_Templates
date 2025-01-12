@@ -6,7 +6,8 @@
 #include <DallasTemperature.h>
 #include <pubsubclient.h>
 #include <WiFiUdp.h>
-// #include <NTPClient.h>
+#include <ESP_Mail_Client.h>
+#include <NTPClient.h>
 
 // put global variables here:
 // Define pins and other constants
@@ -46,10 +47,10 @@ char prevTargetTemperature[23], ESP32targetTemperature[23];
 
 // put your mqtt server here:
 
-const char *mqtt_server = "c846e85af71b4f65864f7124799cd3bb.s1.eu.hivemq.cloud";
+const char *mqtt_server = "ea53fbd1c1a54682b81526905851077b.s1.eu.hivemq.cloud";
 const int mqtt_port = 8883; // Secure MQTT port
-const char *mqtt_user = "Tortoise";
-const char *mqtt_password = "Hea1951Ter";
+const char *mqtt_user = "ESP32Tortiose";
+const char *mqtt_password = "Hea1951TerESP32";
 
 // Initialize the pubsub client
 WiFiClientSecure espClient;
@@ -96,16 +97,6 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  // Initialize Firebase
-  // config.api_key = "AIzaSyA81MAjPXCO5fYpzsrhXP6t3XQ4oVNrpAo";
-  // auth.user.email = "your_email";
-  // auth.user.password = "your_password";
-  // Firebase.begin(&config, &auth);
-  // Firebase.reconnectWiFi(true);
-
-  //  Firebase.begin(&config, &auth);
-  // Firebase.reconnectWiFi(true);
-  // Start the DallasTemperature library
   sensors.begin();
 
   // Check if at least 3 sensors are connected
@@ -145,7 +136,7 @@ void loop()
     digitalWrite(LED_BUILTIN, HIGH);
     isConnected = true;
   }
-
+ 
   if (WiFi.status() != WL_CONNECTED)
   {
     Serial.println(".");
@@ -177,30 +168,38 @@ void loop()
   publishTempToMQTT();
 }
 
-void handleWiFiConnection(const char* ssid, const char* password, bool &isConnected) {
+void handleWiFiConnection(const char *ssid, const char *password, bool &isConnected)
+{
   static bool isStaticIPConfigured = false;
 
   // Configure static IP once
-  if (!isStaticIPConfigured) {
-    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  if (!isStaticIPConfigured)
+  {
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+    {
       Serial.println("Failed to configure Static IP");
-    } else {
+    }
+    else
+    {
       Serial.println("Static IP configured");
     }
     isStaticIPConfigured = true; // Avoid reconfiguring every call
   }
 
   // Handle WiFi connection
-  if (WiFi.status() == WL_CONNECTED && !isConnected) {
+  if (WiFi.status() == WL_CONNECTED && !isConnected)
+  {
     Serial.println("Connecting to WiFi");
     digitalWrite(LED_BUILTIN, HIGH); // Turn LED on
-    isConnected = true;             // Update connection status
-  } else if (WiFi.status() != WL_CONNECTED) {
-    Serial.print("Connecting"); // Debug message
-    WiFi.begin(ssid, password); // Attempt connection
+    isConnected = true;              // Update connection status
+  }
+  else if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print("Connecting");                           // Debug message
+    WiFi.begin(ssid, password);                           // Attempt connection
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // Toggle LED state
-    delay(1000); // Wait before retrying
-    isConnected = false; // Update connection status
+    delay(1000);                                          // Wait before retrying
+    isConnected = false;                                  // Update connection status
   }
 }
 
@@ -227,38 +226,6 @@ void sendSensor()
     prevS3 = BlueSensor - 2;
     sensorReadStartUp = false;
   }
-  // Serial.println("line 182 sensorReadStartUp " + String(sensorReadStartUp));
-  // Serial.print("line 183  prevS1: ");
-  // Serial.println(prevS1);
-  // Serial.print("line 183  RedSensor: ");
-  // Serial.println(RedSensor);
-  // Serial.print("line 185  prevS2: ");
-  // Serial.println(prevS2);
-  // Serial.print("line 185  GreenSensor: ");
-  // Serial.println(GreenSensor);
-  // Serial.print("line 187  prevS3: ");
-  // Serial.println(prevS3);
-  // Serial.print("line 187  BlueSensor: ");
-  // Serial.println(BlueSensor);
-  // Serial.println("Delaying for 9 seconds");
-  // Serial.println("After delay");
-  // // Print temperatures to the serial monitor
-  // Serial.print("line 189 red: ");
-  // Serial.print(RedSensor);
-  // Serial.println(" °C");
-
-  // Serial.print("Green: ");
-  // Serial.print(GreenSensor);
-  // Serial.println(" °C");
-
-  // Serial.print("blue: ");
-  // Serial.print(BlueSensor);
-  // Serial.println(" °C");
-
-  // Serial.println("-----------------------");
-
-
-
   /**************************
        DS18B20 Sensor
          Ends Here
@@ -284,7 +251,6 @@ void sendSensor()
   {
     if (pmHours == Hours && pmMinutes == Minutes)
     { // set pmTemp for the Night time setting
-      Serial.println("line 602 Am == false");
       AmFlag = false;
       pmTemp = ESP32pmTemperature;
       int myTemp = pmTemp;
@@ -333,12 +299,12 @@ void callback(char *topic, uint8_t *payload, unsigned int length)
   if (strstr(topic, "ESP32AMtime"))
   {
     sscanf((char *)payload, "%d:%d", &amHours, &amMinutes);
-    Serial.println("line 405 ********* ESP32AMtime *********"+String((char *)payload));
+    Serial.println("line 405 ********* ESP32AMtime *********" + String((char *)payload));
   }
   if (strstr(topic, "ESP32PMtime"))
   {
     sscanf((char *)payload, "%d:%d", &pmHours, &pmMinutes);
-    Serial.println("line 410 ********** ESP32PMtime b******** "+String((char *)payload));
+    Serial.println("line 410 ********** ESP32PMtime b******** " + String((char *)payload));
   }
   if (amTemp != 0 && pmTemp != 0)
   {
@@ -399,6 +365,7 @@ int reconnect(int index)
 * ******************************************/
 void publishTempToMQTT(void)
 {
+  Serial.println("line 408 publishTempToMQTT");
   // Serial.println("line 331 publishTempToMQTT");
   if (!client.connected())
   {

@@ -14,7 +14,7 @@ import { styles } from "../Styles/styles";
 
 const Heater_ON_OFF_Graph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [HeaterStatus, setHeaterStatus] = useState(false);
+  const [ESP32HeaterStatus, setHeaterStatus] = useState(false);
   const [gaugeHours, setGaugeHours] = useState(0);
   const [gaugeMinutes, setGaugeMinutes] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
@@ -25,7 +25,7 @@ const Heater_ON_OFF_Graph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "HeaterStatus") {
+      if (message.destinationName === "ESP32HeaterStatus") {
         const newStatus = message.payloadString.trim() === "true" ? 1 : 0;
         const lastStatus = data.length > 0 ? data[data.length - 1].value : null;
         if (lastStatus === null || newStatus !== lastStatus) {
@@ -51,20 +51,19 @@ const Heater_ON_OFF_Graph = () => {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, HeaterStatus]
+    [data, ESP32HeaterStatus]
   );
 const textColor = "blue";
   useFocusEffect(
     useCallback(() => {
-      console.log("GaugeScreen is focused");
-
+      console.log("Heater_ON_OFF_Graph is focused");
       // Initialize the MQTT service
       const mqtt = new MqttService(onMessageArrived, setIsConnected);
-      mqtt.connect("Tortoise", "Hea1951Ter", {
+      mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
           setIsConnected(true);
 
-          mqtt.client.subscribe("HeaterStatus");
+          mqtt.client.subscribe("ESP32HeaterStatus");
           mqtt.client.subscribe("gaugeHours");
           mqtt.client.subscribe("gaugeMinutes");
         },
@@ -77,6 +76,7 @@ const textColor = "blue";
       setMqttService(mqtt);
 
       return () => {
+        console.log("Heater_ON_OFF is unfocused");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           mqtt.disconnect();
@@ -125,8 +125,8 @@ const textColor = "blue";
   return (
     <SafeAreaView style={styles.graphContainer}>
       <View>
+       <Text style={styles.ESPHeader}>MQTT_Heat_Control ESP32</Text>
         <Text style={styles.header}> HeaterStatus </Text>
-
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>
           {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}

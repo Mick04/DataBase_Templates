@@ -12,38 +12,38 @@ import MqttService from "./MqttService";
 import { styles } from "../Styles/styles";
 const GaugeScreen = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [outSide, setOutSideTemp] = useState("");
-  const [coolSide, setCoolSideTemp] = useState("");
-  const [heater, setHeaterTemp] = useState("");
-  const [gaugeHours, setGaugeHours] = useState(0);
-  const [gaugeMinutes, setGaugeMinutes] = useState(0);
+  const [ESP32outSide, setOutSideTemp] = useState("");
+  const [ESP32coolSide, setCoolSideTemp] = useState("");
+  const [ESP32heater, setHeaterTemp] = useState("");
+  const [ESP32gaugeHours, setGaugeHours] = useState(0);
+  const [ESP32gaugeMinutes, setGaugeMinutes] = useState(0);
   const [HeaterStatus, setHeaterStatus] = useState(false);
-  const [targetTemperature, setTargetTemperature] = useState(0);
+  const [ESP32targetTemperature, setTargetTemperature] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
 
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback((message) => {
     switch (message.destinationName) {
-      case "outSide":
+      case "ESP32outSide":
         setOutSideTemp(parseFloat(message.payloadString).toFixed(1));
         break;
-      case "coolSide":
+      case "ESP32coolSide":
         setCoolSideTemp(parseFloat(message.payloadString).toFixed(1));
         break;
-      case "heater":
+      case "ESP32heater":
         setHeaterTemp(parseFloat(message.payloadString).toFixed(1));
         break;
-      case "gaugeHours":
+      case "ESP32gaugeHours":
         setGaugeHours(parseInt(message.payloadString));
         break;
-      case "gaugeMinutes":
+      case "ESP32gaugeMinutes":
         setGaugeMinutes(parseInt(message.payloadString));
         break;
       case "HeaterStatus":
         const newStatus = message.payloadString.trim() === "true";
         setHeaterStatus(newStatus);
         break;
-      case "TargetTemperature":
+      case "ESP32targetTemperature":
         setTargetTemperature(parseInt(message.payloadString));
         break;
       default:
@@ -58,19 +58,19 @@ const GaugeScreen = () => {
       // Initialize the MQTT service
       const mqtt = new MqttService(onMessageArrived, setIsConnected);
       // console.log("line 55 TemperatureGraph ");
-      mqtt.connect("Tortoise", "Hea1951Ter", {
+      mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
           // console.log(
           //   "Settings line 76 TemperatureGraph Connected to MQTT broker"
           // );
           setIsConnected(true);
-          mqtt.client.subscribe("outSide");
-          mqtt.client.subscribe("coolSide");
-          mqtt.client.subscribe("heater");
-          mqtt.client.subscribe("gaugeHours");
-          mqtt.client.subscribe("gaugeMinutes");
+          mqtt.client.subscribe("ESP32outSide");
+          mqtt.client.subscribe("ESP32coolSide");
+          mqtt.client.subscribe("ESP32heater");
+          mqtt.client.subscribe("ESP32gaugeHours");
+          mqtt.client.subscribe("ESP32gaugeMinutes");
           mqtt.client.subscribe("HeaterStatus");
-          mqtt.client.subscribe("TargetTemperature");
+          mqtt.client.subscribe("ESP32targetTemperature");
         },
         onFailure: (error) => {
           // console.error("Failed to connect to MQTT broker", error);
@@ -81,7 +81,7 @@ const GaugeScreen = () => {
       setMqttService(mqtt);
 
       return () => {
-        console.log("GaugeScreen is unfocused, cleaning up...");
+        console.log("GaugeScreen is unfocused");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           // console.log("Gauges line 97 Disconnecting MQTT");
@@ -104,7 +104,7 @@ const GaugeScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.heading}>MQTT_Heat_Control</Text>
+        <Text style={styles.ESPHeader}>MQTT_Heat_Control_ESP32</Text>
         <Text style={styles.heading}>Gauges</Text>
         <Text style={styles.timeHeader}>
           If time is incorrect, check housing
@@ -112,7 +112,7 @@ const GaugeScreen = () => {
         <View>
           <Text style={styles.timeText}>Hours: Minutes</Text>
           <Text style={styles.time}>
-            {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
+            {ESP32gaugeHours}:{ESP32gaugeMinutes.toString().padStart(2, "0")}
           </Text>
           <Text
             style={[
@@ -124,21 +124,21 @@ const GaugeScreen = () => {
           </Text>
         </View>
         <Text style={styles.TargetTempText}>
-          {"Target Temperature = " + targetTemperature}{" "}
+          {"Target Temperature = " + ESP32targetTemperature}{" "}
         </Text>
-        <View style={styles.tempContainer}>
+        <View>
           <Text style={[styles.tempText, { color: "black" }]}>
-            {"outSide Temperature = " + outSide + "\n"}
+            {"outSide Temperature = " + ESP32outSide + "\n"}
           </Text>
           <Text style={[styles.tempText, { color: "green" }]}>
-            {"coolSide Temperature = " + coolSide + "\n"}
+            {"coolSide Temperature = " + ESP32coolSide + "\n"}
           </Text>
 
           <Text style={[styles.tempText, { color: "red" }]}>
-            {"heater Temperature = " + heater}
+            {"heater Temperature = " + ESP32heater}
           </Text>
         </View>
-        <View style={styles.connectionStatus}>
+        <View>
           <Text
             style={[
               styles.connectionStatus,

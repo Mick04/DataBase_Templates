@@ -13,14 +13,13 @@ import MqttService from "./MqttService";
 import CustomLineChart from "./CustomLineChart"; // Import the reusable component
 import { styles } from "../Styles/styles";
 
-const OutSideGraph = () => {
+const HeatGraph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [outSide, setHeaterTemp] = useState("");
+  const [ESP32heater, setHeaterTemp] = useState("");
   const [gaugeHours, setGaugeHours] = useState(0);
   const [gaugeMinutes, setGaugeMinutes] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const [textColor, setTextColor] = useState('blue'); // Example color state
   const [data, setData] = useState([
     { value: -10, label: "10:00", dataPointText: "-10 c˚" },
   ]);
@@ -28,15 +27,13 @@ const OutSideGraph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "outSide") {
+      if (message.destinationName === "ESP32heater") {
         const newTemp = parseFloat(message.payloadString).toFixed(1);
         const lastTemp = data.length > 0 ? data[data.length - 1].value : null;
 
         if (lastTemp === null || Math.abs(newTemp - lastTemp) >= 0.01) {
           const formattedTemp = parseFloat(newTemp); // Convert back to number
           setHeaterTemp(formattedTemp);
-          // console.log("Gauges line 32 outSide: ", outSide);
-
           setData((prevData) => [
             ...prevData,
             {
@@ -57,29 +54,23 @@ const OutSideGraph = () => {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, outSide]
+    [data, ESP32heater]
   );
 
   useFocusEffect(
     useCallback(() => {
-      console.log("outSide is focused");
-
+      console.log("HeaterGraph is focused");
       // Initialize the MQTT service
       const mqtt = new MqttService(onMessageArrived, setIsConnected);
-      // console.log("line 55 TemperatureGraph ");
-      mqtt.connect("Tortoise", "Hea1951Ter", {
+      mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
-          // console.log(
-          //   "Settings line 76 TemperatureGraph Connected to MQTT broker"
-          // );
           setIsConnected(true);
-
-          mqtt.client.subscribe("outSide");
+          mqtt.client.subscribe("ESP32heater");
           mqtt.client.subscribe("gaugeHours");
           mqtt.client.subscribe("gaugeMinutes");
         },
         onFailure: (error) => {
-          // console.error("Failed to connect to MQTT broker", error);
+          console.error("Failed to connect to MQTT broker", error);
           setIsConnected(false);
         },
       });
@@ -87,10 +78,9 @@ const OutSideGraph = () => {
       setMqttService(mqtt);
 
       return () => {
-        console.log("outSide is unfocused, cleaning up...");
+        console.log("HeaterGraph is unfocused");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
-          // console.log("Gauges line 97 Disconnecting MQTT");
           mqtt.disconnect();
         }
         setIsConnected(false); // Reset connection state
@@ -99,12 +89,12 @@ const OutSideGraph = () => {
   );
 
   function handleReconnect() {
-    // console.log("Gauges line 104 Reconnecting...");
+    console.log("Gauges line 104 Reconnecting...");
     if (mqttService) {
       mqttService.reconnect();
       mqttService.reconnectAttempts = 0;
     } else {
-      // console.log("Gauges line 110 MQTT Service is not initialized");
+      console.log("Gauges line 110 MQTT Service is not initialized");
     }
   }
 
@@ -116,7 +106,7 @@ const OutSideGraph = () => {
           setData(JSON.parse(savedData));
         }
       } catch (error) {
-        // console.error("Failed to load data", error);
+        console.error("Failed to load data", error);
       }
     };
 
@@ -128,7 +118,7 @@ const OutSideGraph = () => {
       try {
         await AsyncStorage.setItem("chartData", JSON.stringify(data));
       } catch (error) {
-        // console.error("Failed to save data", error);
+        console.error("Failed to save data", error);
       }
     };
 
@@ -158,7 +148,9 @@ const OutSideGraph = () => {
   return (
     <SafeAreaView style={styles.graphContainer}>
       <View>
-        <Text style={styles.header}> OutSide Temperature</Text>
+        <Text style={styles.ESPHeader}>MQTT_Heat_Control ESP32</Text>
+        <Text style={styles.header}> Heater Temperature</Text>
+
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>
           {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
@@ -176,7 +168,7 @@ const OutSideGraph = () => {
             : "Disconnected from MQTT Broker"}
         </Text>
       </View>
-      <CustomLineChart data={data} GraphTextcolor={'blue'} curved={true}/>
+      <CustomLineChart data={data} GraphTextcolor={"red"} curved={true} />
       <TouchableOpacity
         style={styles.reconnectButton}
         onPress={handleReconnect}
@@ -187,4 +179,4 @@ const OutSideGraph = () => {
     </SafeAreaView>
   );
 };
-export default OutSideGraph;
+export default HeatGraph;

@@ -88,9 +88,10 @@ const SettingsScreen = () => {
   }, []);
   useFocusEffect(
     useCallback(() => {
+      console.log("Settings is focused");
       // Initialize the MQTT service
       const mqtt = new MqttService(onMessageArrived, { setIsConnected });
-      mqtt.connect("Tortoise", "Hea1951Ter", {
+      mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
           setIsConnected(true);
           mqtt.subscribe("control");
@@ -118,7 +119,7 @@ const SettingsScreen = () => {
        * ******************************************************************/
 
       return () => {
-        console.log("GaugeScreen is unfocused, cleaning up...");
+        console.log("Settings is unfocused");
         // Disconnect MQTT when component unmounts
         if (mqtt) {
           // console.log("Settings line 156 Disconnecting MQTT");
@@ -151,7 +152,7 @@ const SettingsScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.heading}>MQTT_Heat_Control</Text>
+        <Text style={styles.ESPHeader}>MQTT_Heat_Control ESP32</Text>
         <Text style={styles.heading}>Settings</Text>
         <Text style={styles.timeHeader}>
           If time is incorrect, check housing

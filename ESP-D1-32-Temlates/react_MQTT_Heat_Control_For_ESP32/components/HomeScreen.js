@@ -10,6 +10,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.homeContainer}>
       <ImageBackground source={backgroundImage} style={[styles.image]}>
+      <Text style={styles.homeHeader}>MQTT_Heat_Control</Text>
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate("Home")}
