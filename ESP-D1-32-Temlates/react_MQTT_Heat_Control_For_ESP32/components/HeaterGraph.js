@@ -15,7 +15,7 @@ import { styles } from "../Styles/styles";
 
 const HeatGraph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [ESP32heater, setHeaterTemp] = useState("");
+  const [heater, setHeaterTemp] = useState("");
   const [gaugeHours, setGaugeHours] = useState(0);
   const [gaugeMinutes, setGaugeMinutes] = useState(0);
   const [inputValue, setInputValue] = useState("");
@@ -27,7 +27,7 @@ const HeatGraph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "ESP32heater") {
+      if (message.destinationName === "heater") {
         const newTemp = parseFloat(message.payloadString).toFixed(1);
         const lastTemp = data.length > 0 ? data[data.length - 1].value : null;
 
@@ -54,7 +54,7 @@ const HeatGraph = () => {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, ESP32heater]
+    [data, heater]
   );
 
   useFocusEffect(
@@ -65,7 +65,7 @@ const HeatGraph = () => {
       mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
           setIsConnected(true);
-          mqtt.client.subscribe("ESP32heater");
+          mqtt.client.subscribe("heater");
           mqtt.client.subscribe("gaugeHours");
           mqtt.client.subscribe("gaugeMinutes");
         },
@@ -78,7 +78,6 @@ const HeatGraph = () => {
       setMqttService(mqtt);
 
       return () => {
-        console.log("HeaterGraph is unfocused");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           mqtt.disconnect();

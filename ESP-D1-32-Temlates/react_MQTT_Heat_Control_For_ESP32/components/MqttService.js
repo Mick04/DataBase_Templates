@@ -70,7 +70,7 @@ class MqttService {
     // console.log("MQTTServices line 70 publishing message");
     if (!this.client.isConnected()) {
       // console.log("Client is not connected. Attempting to reconnect...");
-      client.connect({
+      this.client.connect({
         onSuccess: () => {
           // console.log("MQTTServices line 75 Reconnected successfully.");
           this.isConnected = true;

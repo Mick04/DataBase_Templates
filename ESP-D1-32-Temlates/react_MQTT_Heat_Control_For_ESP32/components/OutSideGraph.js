@@ -15,9 +15,9 @@ import { styles } from "../Styles/styles";
 
 const OutSideGraph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [ESP32outSide, setHeaterTemp] = useState("");
-  const [ESP32gaugeHours, setGaugeHours] = useState(0);
-  const [ESP32gaugeMinutes, setGaugeMinutes] = useState(0);
+  const [outSide, setHeaterTemp] = useState("");
+  const [gaugeHours, setGaugeHours] = useState(0);
+  const [gaugeMinutes, setGaugeMinutes] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [textColor, setTextColor] = useState('blue'); // Example color state
@@ -28,7 +28,7 @@ const OutSideGraph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "ESP32outSide") {
+      if (message.destinationName === "outSide") {
         const newTemp = parseFloat(message.payloadString).toFixed(1);
         const lastTemp = data.length > 0 ? data[data.length - 1].value : null;
 
@@ -50,14 +50,14 @@ const OutSideGraph = () => {
           ]);
         }
       }
-      if (message.destinationName === "ESP32gaugeHours") {
+      if (message.destinationName === "gaugeHours") {
         setGaugeHours(parseInt(message.payloadString));
       }
-      if (message.destinationName === "ESP32gaugeMinutes") {
+      if (message.destinationName === "gaugeMinutes") {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, ESP32outSide]
+    [data, outSide]
   );
 
   useFocusEffect(
@@ -74,9 +74,9 @@ const OutSideGraph = () => {
           // );
           setIsConnected(true);
 
-          mqtt.client.subscribe("ESP32outSide");
-          mqtt.client.subscribe("ESP32gaugeHours");
-          mqtt.client.subscribe("ESP32gaugeMinutes");
+          mqtt.client.subscribe("outSide");
+          mqtt.client.subscribe("gaugeHours");
+          mqtt.client.subscribe("gaugeMinutes");
         },
         onFailure: (error) => {
           // console.error("Failed to connect to MQTT broker", error);
@@ -87,7 +87,7 @@ const OutSideGraph = () => {
       setMqttService(mqtt);
 
       return () => {
-        console.log("outSide is unfocused");
+        console.log("outSide is unfocused, cleaning up...");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           // console.log("Gauges line 97 Disconnecting MQTT");
@@ -158,11 +158,11 @@ const OutSideGraph = () => {
   return (
     <SafeAreaView style={styles.graphContainer}>
       <View>
-        <Text style={styles.ESPHeader}> MQTT_Heat_Control_ESP32</Text>
-        <Text style={styles.header}> OutSide Temperature</Text>
+        <Text style={styles.header}> MQTT_Heat_Control_ESP32</Text>
+        <Text style={styles.ESPHeader}> OutSide Temperature</Text>
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>
-          {ESP32gaugeHours}:{ESP32gaugeMinutes.toString().padStart(2, "0")}
+          {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
         </Text>
       </View>
       <View style={styles.connectionStatus}>

@@ -1,11 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  SafeAreaView,
-  TouchableOpacity,
-  Text,
-  View,
-} from "react-native";
+import { SafeAreaView, TouchableOpacity, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MqttService from "./MqttService";
@@ -14,7 +9,7 @@ import { styles } from "../Styles/styles";
 
 const Heater_ON_OFF_Graph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [ESP32HeaterStatus, setHeaterStatus] = useState(false);
+  const [HeaterStatus, setHeaterStatus] = useState(false);
   const [gaugeHours, setGaugeHours] = useState(0);
   const [gaugeMinutes, setGaugeMinutes] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
@@ -25,7 +20,7 @@ const Heater_ON_OFF_Graph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "ESP32HeaterStatus") {
+      if (message.destinationName === "HeaterStatus") {
         const newStatus = message.payloadString.trim() === "true" ? 1 : 0;
         const lastStatus = data.length > 0 ? data[data.length - 1].value : null;
         if (lastStatus === null || newStatus !== lastStatus) {
@@ -51,9 +46,9 @@ const Heater_ON_OFF_Graph = () => {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, ESP32HeaterStatus]
+    [data, HeaterStatus]
   );
-const textColor = "blue";
+  const textColor = "blue";
   useFocusEffect(
     useCallback(() => {
       console.log("Heater_ON_OFF_Graph is focused");
@@ -63,7 +58,7 @@ const textColor = "blue";
         onSuccess: () => {
           setIsConnected(true);
 
-          mqtt.client.subscribe("ESP32HeaterStatus");
+          mqtt.client.subscribe("HeaterStatus");
           mqtt.client.subscribe("gaugeHours");
           mqtt.client.subscribe("gaugeMinutes");
         },
@@ -125,7 +120,7 @@ const textColor = "blue";
   return (
     <SafeAreaView style={styles.graphContainer}>
       <View>
-       <Text style={styles.ESPHeader}>MQTT_Heat_Control ESP32</Text>
+        <Text style={styles.ESPHeader}>MQTT_Heat_Control ESP32</Text>
         <Text style={styles.header}> HeaterStatus </Text>
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>

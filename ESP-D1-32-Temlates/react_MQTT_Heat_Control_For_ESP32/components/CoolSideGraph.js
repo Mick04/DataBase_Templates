@@ -15,9 +15,9 @@ import { styles } from "../Styles/styles";
 
 const CoolSideGraph = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [ESP32coolSide, setCoolSideTemp] = useState("");
-  const [ESP32gaugeHours, setGaugeHours] = useState(0);
-  const [ESP32gaugeMinutes, setGaugeMinutes] = useState(0);
+  const [coolSide, setCoolSideTemp] = useState("");
+  const [gaugeHours, setGaugeHours] = useState(0);
+  const [gaugeMinutes, setGaugeMinutes] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [data, setData] = useState([
     { value: -10, label: "10:00", dataPointText: "-10 c˚" },
@@ -26,7 +26,7 @@ const CoolSideGraph = () => {
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback(
     (message) => {
-      if (message.destinationName === "ESP32coolSide") {
+      if (message.destinationName === "coolSide") {
         const newTemp = parseFloat(message.payloadString).toFixed(1);
         const lastTemp = data.length > 0 ? data[data.length - 1].value : null;
 
@@ -46,14 +46,14 @@ const CoolSideGraph = () => {
           ]);
         }
       }
-      if (message.destinationName === "ESP32gaugeHours") {
+      if (message.destinationName === "gaugeHours") {
         setGaugeHours(parseInt(message.payloadString));
       }
-      if (message.destinationName === "ESP32gaugeMinutes") {
+      if (message.destinationName === "gaugeMinutes") {
         setGaugeMinutes(parseInt(message.payloadString));
       }
     },
-    [data, ESP32coolSide]
+    [data, coolSide]
   );
 
   useFocusEffect(
@@ -65,9 +65,9 @@ const CoolSideGraph = () => {
       mqtt.connect("ESP32Tortiose", "Hea1951TerESP32", {
         onSuccess: () => {
           setIsConnected(true);
-          mqtt.client.subscribe("ESP32coolSide");
-          mqtt.client.subscribe("ESP32gaugeHours");
-          mqtt.client.subscribe("ESP32gaugeMinutes");
+          mqtt.client.subscribe("coolSide");
+          mqtt.client.subscribe("gaugeHours");
+          mqtt.client.subscribe("gaugeMinutes");
         },
         onFailure: (error) => {
           // console.error("Failed to connect to MQTT broker", error);
@@ -78,7 +78,6 @@ const CoolSideGraph = () => {
       setMqttService(mqtt);
 
       return () => {
-        console.log("CoolSideScreen is unfocused");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           mqtt.disconnect();
@@ -131,7 +130,7 @@ const CoolSideGraph = () => {
         <Text style={styles.header}>CoolSide Temperature</Text>
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>
-          {ESP32gaugeHours}:{ESP32gaugeMinutes.toString().padStart(2, "0")}
+          {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
         </Text>
       </View>
       <Text

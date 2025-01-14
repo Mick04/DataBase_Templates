@@ -12,42 +12,42 @@ import MqttService from "./MqttService";
 import { styles } from "../Styles/styles";
 const GaugeScreen = () => {
   const [mqttService, setMqttService] = useState(null);
-  const [ESP32outSide, setOutSideTemp] = useState("");
-  const [ESP32coolSide, setCoolSideTemp] = useState("");
-  const [ESP32heater, setHeaterTemp] = useState("");
-  const [ESP32gaugeHours, setGaugeHours] = useState(0);
-  const [ESP32gaugeMinutes, setGaugeMinutes] = useState(0);
+  const [outSide, setOutSideTemp] = useState("");
+  const [coolSide, setCoolSideTemp] = useState("");
+  const [heater, setHeaterTemp] = useState("");
+  const [gaugeMinutes, setGaugeMinutes] = useState(0);
+  const [gaugeHours, setGaugeHours] = useState(0);
   const [HeaterStatus, setHeaterStatus] = useState(false);
-  const [ESP32targetTemperature, setTargetTemperature] = useState(0);
+  const [targetTemperature, setTargetTemperature] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
 
   // Define the onMessageArrived callback
   const onMessageArrived = useCallback((message) => {
     switch (message.destinationName) {
-      case "ESP32outSide":
+      case "outSide":
         setOutSideTemp(parseFloat(message.payloadString).toFixed(1));
         break;
-      case "ESP32coolSide":
+      case "coolSide":
         setCoolSideTemp(parseFloat(message.payloadString).toFixed(1));
         break;
-      case "ESP32heater":
+      case "heater":
         setHeaterTemp(parseFloat(message.payloadString).toFixed(1));
         break;
-      case "ESP32gaugeHours":
+      case "gaugeHours":
         setGaugeHours(parseInt(message.payloadString));
         break;
-      case "ESP32gaugeMinutes":
+      case "gaugeMinutes":
         setGaugeMinutes(parseInt(message.payloadString));
         break;
       case "HeaterStatus":
         const newStatus = message.payloadString.trim() === "true";
         setHeaterStatus(newStatus);
         break;
-      case "ESP32targetTemperature":
+      case "TargetTemperature":
         setTargetTemperature(parseInt(message.payloadString));
         break;
       default:
-        // console.log("Unknown topic:", message.destinationName);
+      // console.log("Unknown topic:", message.destinationName);
     }
   }, []);
 
@@ -64,13 +64,13 @@ const GaugeScreen = () => {
           //   "Settings line 76 TemperatureGraph Connected to MQTT broker"
           // );
           setIsConnected(true);
-          mqtt.client.subscribe("ESP32outSide");
-          mqtt.client.subscribe("ESP32coolSide");
-          mqtt.client.subscribe("ESP32heater");
-          mqtt.client.subscribe("ESP32gaugeHours");
-          mqtt.client.subscribe("ESP32gaugeMinutes");
+          mqtt.client.subscribe("outSide");
+          mqtt.client.subscribe("coolSide");
+          mqtt.client.subscribe("heater");
+          mqtt.client.subscribe("gaugeHours");
+          mqtt.client.subscribe("gaugeMinutes");
           mqtt.client.subscribe("HeaterStatus");
-          mqtt.client.subscribe("ESP32targetTemperature");
+          mqtt.client.subscribe("TargetTemperature");
         },
         onFailure: (error) => {
           // console.error("Failed to connect to MQTT broker", error);
@@ -81,7 +81,7 @@ const GaugeScreen = () => {
       setMqttService(mqtt);
 
       return () => {
-        console.log("GaugeScreen is unfocused");
+        console.log("GaugeScreen is unfocused, cleaning up...");
         // Disconnect MQTT when the screen is unfocused
         if (mqtt) {
           // console.log("Gauges line 97 Disconnecting MQTT");
@@ -112,7 +112,7 @@ const GaugeScreen = () => {
         <View>
           <Text style={styles.timeText}>Hours: Minutes</Text>
           <Text style={styles.time}>
-            {ESP32gaugeHours}:{ESP32gaugeMinutes.toString().padStart(2, "0")}
+            {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
           </Text>
           <Text
             style={[
@@ -124,21 +124,21 @@ const GaugeScreen = () => {
           </Text>
         </View>
         <Text style={styles.TargetTempText}>
-          {"Target Temperature = " + ESP32targetTemperature}{" "}
+          {"Target Temperature = " + targetTemperature}{" "}
         </Text>
-        <View>
+        <View style={styles.tempContainer}>
           <Text style={[styles.tempText, { color: "black" }]}>
-            {"outSide Temperature = " + ESP32outSide + "\n"}
+            {"outSide Temperature = " + outSide + "\n"}
           </Text>
           <Text style={[styles.tempText, { color: "green" }]}>
-            {"coolSide Temperature = " + ESP32coolSide + "\n"}
+            {"coolSide Temperature = " + coolSide + "\n"}
           </Text>
 
           <Text style={[styles.tempText, { color: "red" }]}>
-            {"heater Temperature = " + ESP32heater}
+            {"heater Temperature = " + heater}
           </Text>
         </View>
-        <View>
+        <View style={styles.connectionStatus}>
           <Text
             style={[
               styles.connectionStatus,

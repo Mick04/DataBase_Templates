@@ -158,10 +158,10 @@ const SettingsScreen = () => {
           If time is incorrect, check housing
         </Text>
         <View>
-        <Text style={styles.timeText}>Hours: Minutes</Text>
-        <Text style={styles.time}>
-          {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
-        </Text>
+          <Text style={styles.timeText}>Hours: Minutes</Text>
+          <Text style={styles.time}>
+            {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}
+          </Text>
         </View>
         <TouchableOpacity style={styles.reset} onPress={handleOnPress}>
           <Text style={styles.header}>
@@ -177,11 +177,7 @@ const SettingsScreen = () => {
           {isConnected ? "Connected" : "Disconnected"}
         </Text>
         <View>
-          <Text
-            style={[
-              styles.TargetTempText,
-            ]}
-          ></Text>
+          <Text style={[styles.TargetTempText]}></Text>
         </View>
 
         {!Reset && ( // Add this line to conditionally render the TimePicker components START
