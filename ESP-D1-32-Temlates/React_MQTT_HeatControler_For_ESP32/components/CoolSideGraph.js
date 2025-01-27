@@ -126,7 +126,7 @@ const CoolSideGraph = () => {
   return (
     <SafeAreaView style={styles.graphContainer}>
       <View>
-        <Text style={styles.header}>CoolSide Temperature</Text>
+        <Text style={styles.header}>CoolSide TemperatureFor ESP32</Text>
         <Text style={styles.timeText}>Hours: Minutes</Text>
         <Text style={styles.time}>
           {gaugeHours}:{gaugeMinutes.toString().padStart(2, "0")}

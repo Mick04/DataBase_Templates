@@ -1,10 +1,11 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <pubsubclient.h>
 #include <Firebase_ESP_Client.h>
 //#include <Adafruit_Sensor.h>
 #include <OneWire.h>
-#include <WiFiUdp.h>
+//#include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <NTPClient.h>
 #include <ESP_Mail_Client.h>
@@ -33,12 +34,15 @@ FirebaseConfig config;
 
 // put global variables here:
 // Define pins and other constants
-#define Relay_Pin D5 // active board
+#define Relay_Pin 5 // active board
 // #define builtInLED_Pin 13    // on board LED_Pin
-#define LED_Pin D6 // LED_Pin  //change when debuged
+#define LED_Pin 6 // LED_Pin  //change when debuged
 // Data wire is connected to D7
-#define ONE_WIRE_BUS D7 // active board  // on pin 10 (a 4.7K resistor is necessary)
+#define ONE_WIRE_BUS 7 // active board  // on pin 10 (a 4.7K resistor is necessary)
 
+#ifndef LED_BUILTIN
+#define LED_BUILTIN 2
+#endif
 // Setup a OneWire instance to communicate with any OneWire devices
 OneWire oneWire(ONE_WIRE_BUS);
 
@@ -157,10 +161,10 @@ void setup()
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
-    Serial.print(".");
+    Serial.print(F("."));
   }
 
-  Serial.println("WiFi connected");
+  Serial.println(F("WiFi connected"));
 
   timeClient.begin();
   timeClient.setTimeOffset(utcOffsetInSeconds);
@@ -170,11 +174,11 @@ void setup()
   // Attempt to reconnect and check the return value
   if (reconnect(1) == 1)
   {
-    Serial.println("AAA setup Successfully connected and subscribed in setup");
+    Serial.println(F("AAA setup Successfully connected and subscribed in setup"));
   }
   else
   {
-    Serial.println("xxxxxxxFailed to connect and subscribe in setup");
+    Serial.println(F("xxxxxxxFailed to connect and subscribe in setup"));
   }
     // Initialize Firebase
   config.api_key = "AIzaSyA81MAjPXCO5fYpzsrhXP6t3XQ4oVNrpAo";
@@ -199,7 +203,8 @@ void setup()
       type = "filesystem";
 
     // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    Serial.println("Start updating " + type); });
+    Serial.print(F("Start updating "));
+    Serial.println(F(type));
   ArduinoOTA.onEnd([]()
                    { Serial.println("\nEnd"); });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
