@@ -1,12 +1,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <pubsubclient.h>
+//#include <pubsubclient.h>
 #include <Firebase_ESP_Client.h>
-//#include <Adafruit_Sensor.h>
 #include <OneWire.h>
-//#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
+//#include <ArduinoOTA.h>
 #include <NTPClient.h>
 #include <ESP_Mail_Client.h>
 #include <DallasTemperature.h> // Include FirebaseArduino library
@@ -16,7 +14,6 @@ const char *ssid = "Gimp_EXT";
 const char *password = "FC7KUNPX";
 
 // put your mqtt server here:
-
 const char *mqtt_server = "c846e85af71b4f65864f7124799cd3bb.s1.eu.hivemq.cloud";
 const int mqtt_port = 8883; // Secure MQTT port
 const char *mqtt_user = "Tortoise";
@@ -24,13 +21,12 @@ const char *mqtt_password = "Hea1951Ter";
 
 // Initialize the pubsub client
 WiFiClientSecure espClient;
-PubSubClient client(espClient);
+// PubSubClient client(espClient);//Removed for testing
 
 // Firebase settings
 FirebaseData firebaseData;
 FirebaseAuth auth;
 FirebaseConfig config;
-
 
 // put global variables here:
 // Define pins and other constants
@@ -54,12 +50,12 @@ DeviceAddress redSensor, greenSensor, blueSensor;
 // Define pins and other constants
 byte i, present = 0, type_s, data[12], addr[8];
 
-float celsius, BlueSensor, GreenSensor, RedSensor, stores1, stores2, stores3, prevS1 = -1, prevS2 = -1, prevS3 = -1;
+float BlueSensor, GreenSensor, RedSensor, prevS1 = -1, prevS2 = -1, prevS3 = -1;
 
 int adr;
 uint_fast8_t amTemperature, pmTemperature, amTemp, pmTemp; // is set by the sliders
 uint_fast8_t AMtime, PMtime, Day, Hours, Minutes, seconds, amHours, amMinutes, pmHours, pmMinutes, prevHours = -true, prevMinutes = -1;
-bool Am, AmFlag, heaterStatus = false, publishStartUp = true, StartUp = true, heaterOn = false, prevHeaterStatus = false;
+bool Am, AmFlag, heaterStatus = false, StartUp = true, heaterOn = false, prevHeaterStatus = false;
 // Timer-related variables
 unsigned long heaterOnTime = 0;
 const unsigned long heaterTimeout = 3600000;
@@ -70,7 +66,7 @@ char prevTargetTemperature[23], targetTemperature[23];
       settup the time variables start
  * ******************************************/
 
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+// char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char sensor[50];
 // Define NTP Client to get time
 WiFiUDP ntpUDP;
@@ -110,19 +106,23 @@ bool isDST(int day, int month, int hour, int weekday)
 
 SMTPSession smtp;
 
-WiFiClient Temp_Control;
-// PubSubClient client(Temp_Control);
-unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE (50)
-char msg[MSG_BUFFER_SIZE];
-long int value = 0;
+/*        removed for testing     *
+*                                 *
+// WiFiClient Temp_Control;
+// // PubSubClient client(Temp_Control);
+// unsigned long lastMsg = 0;
+// #define MSG_BUFFER_SIZE (50)
+// char msg[MSG_BUFFER_SIZE];
+// long int value = 0;
+//
+// removed for testing  */
 
 // Function prototypes
 // void setup_wifi();
-void callback(char *topic, uint8_t *payload, unsigned int length);
+//void callback(char *topic, uint8_t *payload, unsigned int length);//Removed for testing
 // void callback(char *topic, byte *payload, unsigned int length);
-int reconnect(int index);
-void publishTempToMQTT();
+//int reconnect(int index);
+//void publishTempToMQTT();
 void relay_Control();
 void sendSensor();
 void startHeaterTimer();
@@ -168,79 +168,80 @@ void setup()
 
   timeClient.begin();
   timeClient.setTimeOffset(utcOffsetInSeconds);
-  espClient.setInsecure(); // For basic TLS without certificate verification
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
+  //espClient.setInsecure(); // For basic TLS without certificate verification
+  //client.setServer(mqtt_server, mqtt_port);
+  //client.setCallback(callback);
   // Attempt to reconnect and check the return value
-  if (reconnect(1) == 1)
-  {
-    Serial.println(F("AAA setup Successfully connected and subscribed in setup"));
-  }
-  else
-  {
-    Serial.println(F("xxxxxxxFailed to connect and subscribe in setup"));
-  }
-    // Initialize Firebase
+  // if (reconnect(1) == 1)
+  // {
+  //   Serial.println(F("AAA setup Successfully connected and subscribed in setup"));
+  // }
+  // else
+  // {
+  //   Serial.println(F("xxxxxxxFailed to connect and subscribe in setup"));
+  //}
+  // Initialize Firebase
   config.api_key = "AIzaSyA81MAjPXCO5fYpzsrhXP6t3XQ4oVNrpAo";
   auth.user.email = "your_email";
   auth.user.password = "your_password";
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
-  /************************************
-            OVER THE AIR START
-    *                                  *
-    ************************************/
+  // /************************************
+  //           OVER THE AIR START
+  //   *                                  *
+  //   ************************************/
 
-  // ArduinoOTA.setHostname("INSIDE");
-  ArduinoOTA.setHostname("TORTOISE_HOSING");
-  // ArduinoOTA.setHostname("TEST RIG");
-  ArduinoOTA.onStart([]()
-                     {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH)
-      type = "sketch";
-    else  // U_SPIFFS
-      type = "filesystem";
+  // // ArduinoOTA.setHostname("INSIDE");
+  // ArduinoOTA.setHostname("TORTOISE_HOSING");
+  // // ArduinoOTA.setHostname("TEST RIG");
+  // ArduinoOTA.onStart([]()
+  //                    {
+  //   String type;
+  //   if (ArduinoOTA.getCommand() == U_FLASH)
+  //     type = "sketch";
+  //   else  // U_SPIFFS
+  //     type = "filesystem";
 
-    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    Serial.print(F("Start updating "));
-    Serial.println(F(type));
-  ArduinoOTA.onEnd([]()
-                   { Serial.println("\nEnd"); });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
-  ArduinoOTA.onError([](ota_error_t error)
-                     {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed"); });
-  ArduinoOTA.begin();
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  //   // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+  //   Serial.print(F("Start updating "));
+  //   Serial.println(type);
+  // });
+  //   ArduinoOTA.onEnd([]()
+  //                  { Serial.println("\nEnd"); });
+  // ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
+  // ArduinoOTA.onError([](ota_error_t error)
+  //                    {
+  //   Serial.printf("Error[%u]: ", error);
+  //   if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+  //   else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+  //   else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+  //   else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+  //   else if (error == OTA_END_ERROR) Serial.println("End Failed"); });
+  // ArduinoOTA.begin();
+  // Serial.println("Ready");
+  // Serial.print("IP address: ");
+  // Serial.println(WiFi.localIP());
 
-  Serial.println("Initializing DS18B20 sensors...");
+  // Serial.println("Initializing DS18B20 sensors...");
 
-  // Start the DallasTemperature library
-  sensors.begin();
+  // // Start the DallasTemperature library
+  // sensors.begin();
 
-  // Check if at least 3 sensors are connected
-  if (sensors.getDeviceCount() < 3)
-  {
-    Serial.println("Error: Less than 3 DS18B20 sensors detected!");
-    while (true)
-      ; // Halt execution
-  }
+  // // Check if at least 3 sensors are connected
+  // if (sensors.getDeviceCount() < 3)
+  // {
+  //   Serial.println("Error: Less than 3 DS18B20 sensors detected!");
+  //   while (true)
+  //     ; // Halt execution
+  // }
 
-  // Assign addresses to sensors
-  if (!sensors.getAddress(redSensor, 0))
-    Serial.println("Error: Sensor 1 not found!");
-  if (!sensors.getAddress(greenSensor, 1))
-    Serial.println("Error: Sensor 2 not found!");
-  if (!sensors.getAddress(blueSensor, 2))
-    Serial.println("Error: Sensor 3 not found!");
+  // // Assign addresses to sensors
+  // if (!sensors.getAddress(redSensor, 0))
+  //   Serial.println("Error: Sensor 1 not found!");
+  // if (!sensors.getAddress(greenSensor, 1))
+  //   Serial.println("Error: Sensor 2 not found!");
+  // if (!sensors.getAddress(blueSensor, 2))
+  //   Serial.println("Error: Sensor 3 not found!");
 }
 /************************************
          OVER THE AIR END
@@ -248,24 +249,24 @@ void setup()
 
 void loop()
 {
-  ArduinoOTA.handle();
-  if (!client.connected())
-  {
-    Serial.println("void loop() line 175");
-    // Serial.println("Calling Reconnect to MQTT server");
-    // Attempt to reconnect and check the return value
-    if (reconnect(2) == 1)
-    {
-      Serial.println("BBB loop Successfully connected and subscribed in setup");
-    }
-    else
-    {
-      Serial.println("Failed to connect and subscribe in setup");
-    }
-  }
-  client.loop();
+  //ArduinoOTA.handle();
+  // if (!client.connected())
+  // {
+  //   Serial.println("void loop() line 175");
+  //   // Serial.println("Calling Reconnect to MQTT server");
+  //   // Attempt to reconnect and check the return value
+  //   if (reconnect(2) == 1)
+  //   {
+  //     Serial.println("BBB loop Successfully connected and subscribed in setup");
+  //   }
+  //   else
+  //   {
+  //     Serial.println("Failed to connect and subscribe in setup");
+  //   }
+  // }
+  // client.loop();
   sendSensor();
-  publishTempToMQTT();
+  //publishTempToMQTT();
   relay_Control();
   timeClient.update();
   // Day = timeClient.getDay();
@@ -350,7 +351,8 @@ void callback(char *topic, uint8_t *payload, unsigned int length)
     if (StartUp == true)
     {
       amTemp = amTemperature;
-      Serial.println("line 392 amTemp: " + String(amTemp));
+      Serial.println("line 392 amTemp: ");
+      Serial.println(String(amTemp));
     }
   }
   if (strstr(topic, "pmTemperature"))
@@ -375,38 +377,38 @@ void callback(char *topic, uint8_t *payload, unsigned int length)
     StartUp = 0;
   }
 }
-int reconnect(int index)
-{
-  // Serial.println("reconnect index: " + String(index));
-  while (!client.connected())
-  {
+//int reconnect(int index)
+// {
+//   // Serial.println("reconnect index: " + String(index));
+//   while (!client.connected())
+//   {
 
-    //  Set a longer keep-alive interval (e.g., 60 seconds)
-    client.setKeepAlive(60);
-    if (client.connect("WemosD1Client", mqtt_user, mqtt_password))
-    {
-      client.subscribe("Temp_Control/sub");
-      client.subscribe("control");
-      client.subscribe("amTemperature");
-      client.subscribe("pmTemperature");
-      client.subscribe("AMtime");
-      client.subscribe("PMtime");
-      client.subscribe("HeaterStatus");
-      client.subscribe("outSide");
-      client.subscribe("coolSide");
-      client.subscribe("heater");
-      return 1;
-    }
-    else
-    {
-      Serial.print("line 258 failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
-    }
-  }
-  return 0;
-}
+//     //  Set a longer keep-alive interval (e.g., 60 seconds)
+//     client.setKeepAlive(60);
+//     if (client.connect("WemosD1Client", mqtt_user, mqtt_password))
+//     {
+//       client.subscribe("Temp_Control/sub");
+//       client.subscribe("control");
+//       client.subscribe("amTemperature");
+//       client.subscribe("pmTemperature");
+//       client.subscribe("AMtime");
+//       client.subscribe("PMtime");
+//       client.subscribe("HeaterStatus");
+//       client.subscribe("outSide");
+//       client.subscribe("coolSide");
+//       client.subscribe("heater");
+//       return 1;
+//     }
+//     else
+//     {
+//       Serial.print("line 258 failed, rc=");
+//       Serial.print(client.state());
+//       Serial.println(" try again in 5 seconds");
+//       delay(5000);
+//     }
+//   }
+//   return 0;
+// }
 
 /*************************************************************
                             Relay Control
@@ -448,79 +450,79 @@ void relay_Control()
                 to receive.
                   start
 * ******************************************/
-void publishTempToMQTT(void)
-{
-  if (!client.connected())
-  {
+//void publishTempToMQTT(void)
+// {
+//   if (!client.connected())
+//   {
 
-    // Attempt to reconnect and check the return value
-    if (reconnect(3) == 1)
-    {
-      // Serial.println("CCC publish Successfully connected and subscribed in setup");
-    }
-    else
-    {
-      // Serial.println("Failed to connect and subscribe in setup");
-    }
-  }
-  char sensVal[50];
-  const float threshold = 0.2; // Define a threshold for significant change
-  // Publish redSensor
-  if (fabs(RedSensor - prevS1) > threshold)
-  {
-    snprintf(sensVal, sizeof(sensVal), "%.2f", RedSensor);
-    client.publish("outSide", sensVal, true);
-    prevS1 = RedSensor;
-  }
+//     // Attempt to reconnect and check the return value
+//     if (reconnect(3) == 1)
+//     {
+//       // Serial.println("CCC publish Successfully connected and subscribed in setup");
+//     }
+//     else
+//     {
+//       // Serial.println("Failed to connect and subscribe in setup");
+//     }
+//   }
+//   char sensVal[50];
+//   const float threshold = 0.2; // Define a threshold for significant change
+//   // Publish redSensor
+//   if (fabs(RedSensor - prevS1) > threshold)
+//   {
+//     snprintf(sensVal, sizeof(sensVal), "%.2f", RedSensor);
+//     client.publish("outSide", sensVal, true);
+//     prevS1 = RedSensor;
+//   }
 
-  // publish greenSensor
-  if (fabs(GreenSensor - prevS2) > threshold)
-  {
-    snprintf(sensVal, sizeof(sensVal), "%.2f", GreenSensor);
-    client.publish("coolSide", sensVal, true);
-    prevS2 = GreenSensor;
-  }
-  // publish blueSensor
-  if (fabs(BlueSensor - prevS3) > threshold)
-  {
-    snprintf(sensVal, sizeof(sensVal), "%.2f", BlueSensor);
-    client.publish("heater", sensVal, true);
-    prevS3 = BlueSensor;
-  }
+//   // publish greenSensor
+//   if (fabs(GreenSensor - prevS2) > threshold)
+//   {
+//     snprintf(sensVal, sizeof(sensVal), "%.2f", GreenSensor);
+//     client.publish("coolSide", sensVal, true);
+//     prevS2 = GreenSensor;
+//   }
+//   // publish blueSensor
+//   if (fabs(BlueSensor - prevS3) > threshold)
+//   {
+//     snprintf(sensVal, sizeof(sensVal), "%.2f", BlueSensor);
+//     client.publish("heater", sensVal, true);
+//     prevS3 = BlueSensor;
+//   }
 
-  // publish Hours
-  if (Hours != prevHours)
-  {
-    snprintf(sensVal, sizeof(sensVal), "%d", Hours);
-    client.publish("gaugeHours", sensVal, true);
-    prevHours = Hours;
-  }
+//   // publish Hours
+//   if (Hours != prevHours)
+//   {
+//     snprintf(sensVal, sizeof(sensVal), "%d", Hours);
+//     client.publish("gaugeHours", sensVal, true);
+//     prevHours = Hours;
+//   }
 
-  // publish Minutes
-  if (Minutes != prevMinutes)
-  {
-    snprintf(sensVal, sizeof(sensVal), "%d", Minutes);
-    client.publish("gaugeMinutes", sensVal, true);
-    prevMinutes = Minutes;
-  }
+//   // publish Minutes
+//   if (Minutes != prevMinutes)
+//   {
+//     snprintf(sensVal, sizeof(sensVal), "%d", Minutes);
+//     client.publish("gaugeMinutes", sensVal, true);
+//     prevMinutes = Minutes;
+//   }
 
-  // publish Heater Status
-  if (heaterStatus != prevHeaterStatus)
-  {
-    const char *heaterStatusStr = heaterStatus ? "true" : "false";
-    client.publish("HeaterStatus", heaterStatusStr, true);
-    prevHeaterStatus = heaterStatus;
-  }
+//   // publish Heater Status
+//   if (heaterStatus != prevHeaterStatus)
+//   {
+//     const char *heaterStatusStr = heaterStatus ? "true" : "false";
+//     client.publish("HeaterStatus", heaterStatusStr, true);
+//     prevHeaterStatus = heaterStatus;
+//   }
 
-  char targetTemperatureStr[23];
-  if (strcmp(targetTemperature, prevTargetTemperature) != 0)
-  {
-    Serial.println("line 464 Publishing target temperature");
-    snprintf(targetTemperatureStr, sizeof(targetTemperatureStr), "%s", targetTemperature);
-    client.publish("TargetTemperature", targetTemperatureStr, true);
-    strcpy(prevTargetTemperature, targetTemperature); // Copy the new value to prevTargetTemperature
-  }
-}
+//   char targetTemperatureStr[23];
+//   if (strcmp(targetTemperature, prevTargetTemperature) != 0)
+//   {
+//     Serial.println("line 464 Publishing target temperature");
+//     snprintf(targetTemperatureStr, sizeof(targetTemperatureStr), "%s", targetTemperature);
+//     client.publish("TargetTemperature", targetTemperatureStr, true);
+//     strcpy(prevTargetTemperature, targetTemperature); // Copy the new value to prevTargetTemperature
+//   }
+// }
 
 /********************************************
          send temperature value
@@ -546,7 +548,7 @@ void sendSensor()
   sensors.requestTemperatures();
 
   // Read temperatures from each sensor
-  // sensors.requestTemperatures(); 
+  // sensors.requestTemperatures();
   // float RedSensor = sensors.getTempCByIndex(0);
   // float GreenSensor = sensors.getTempCByIndex(1);
   // float BlueSensor = sensors.getTempCByIndex(2);
@@ -630,7 +632,7 @@ void checkHeaterTimeout()
   {
     if (RedSensor < amTemp || RedSensor < pmTemp) // Check if the temperature is still below the threshold
     {
-      client.publish("HeaterStatus", "Temperature did not rise within the expected time.");
+      //client.publish("HeaterStatus", "Temperature did not rise within the expected time.");
 
       // Prepare the email subject and message
       String subject = "Heater Alert";
@@ -708,7 +710,9 @@ void gmail_send(String subject, String message)
 
   // start sending Email and close the session
   if (!MailClient.sendMail(&smtp, &emailMessage))
+  {
     Serial.printf("Error, Status Code: %d, Error Code: %d, Reason: %s\n", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
+  }
 }
 
 // callback function to get the Email sending status
