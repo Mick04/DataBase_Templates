@@ -13,7 +13,7 @@
 #include <ESP8266WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <pubsubclient.h>
-// #include <Adafruit_Sensor.h>
+#include <Adafruit_Sensor.h>
 #include <OneWire.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -59,7 +59,7 @@ const char *mqtt_password = "Hea1951Ter";
 
 // Initialize the pubsub client
 WiFiClientSecure espClient;
-PubSubClient client(espClient);
+//PubSubClient client(espClient);
 
 // put global variables here:
 // Define pins and other constants
