@@ -12,8 +12,8 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <Firebase_ESP_Client.h>
-#include <pubsubclient.h>
-#include <Adafruit_Sensor.h>
+#include <PubSubClient.h>
+//#include <Adafruit_Sensor.h>
 #include <OneWire.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
