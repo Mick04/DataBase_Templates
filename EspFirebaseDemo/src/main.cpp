@@ -65,7 +65,7 @@ WiFiClientSecure espClient;
 // Define pins and other constants
 #define Relay_Pin D5 // active board
 // #define builtInLED_Pin 13    // on board LED_Pin
-#define LED_Pin D6 // LED_Pin  //change when debuged
+#define LED_Pin 13 // LED_Pin  //change when debuged
 // Data wire is connected to D7
 #define ONE_WIRE_BUS D7 // active board  // on pin 10 (a 4.7K resistor is necessary)
 
