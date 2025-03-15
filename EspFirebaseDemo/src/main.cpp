@@ -31,10 +31,10 @@
 #define WIFI_PASSWORD "FC7KUNPX"
 
 // Insert Firebase project API Key
-#define API_KEY "AIzaSyA81MAjPXCO5fYpzsrhXP6t3XQ4oVNrpAo"
+#define API_KEY "AIzaSyDkJinA0K6NqBLGR4KYnX8AdDNgXp2-FDI"
 
 // Insert RTDB URLefine the RTDB URL */
-#define DATABASE_URL "https://espfirebasedemo-223ed-default-rtdb.europe-west1.firebasedatabase.app/"
+#define DATABASE_URL "https://esp32-heater-controler-6d11f-default-rtdb.europe-west1.firebasedatabase.app/"
 
 // Define Firebase Data object
 FirebaseData fbdo;
